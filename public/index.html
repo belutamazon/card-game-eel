@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Game Multiplayer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- LOBBY UTAMA (ROOM BROWSER & CREATION) -->
+    <div id="lobby">
+        <h1>🂠 Card Game Multiplayer</h1>
+
+        <div class="user-profile-bar">
+            <label for="playerName">Nama Player:</label>
+            <input id="playerName" placeholder="Masukkan nama Anda..." required>
+        </div>
+
+        <div class="lobby-actions">
+            <button id="btnOpenCreateRoom" class="btn-primary">➕ Buat Room Baru</button>
+            <button id="btnRefreshRooms" class="btn-action">🔄 Refresh Room</button>
+        </div>
+
+        <!-- DAFTAR ROOM -->
+        <div class="room-list-container">
+            <h2>Daftar Room Aktif</h2>
+            <div id="roomList" class="room-grid"></div>
+        </div>
+    </div>
+
+    <!-- MODAL BUAT ROOM -->
+    <div id="createRoomModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Buat Room Baru</h3>
+            <div class="form-group">
+                <label>Nama Room:</label>
+                <input id="createRoomName" placeholder="Contoh: Room Santai">
+            </div>
+            <div class="form-group">
+                <label>Password Room (Opsional):</label>
+                <input id="createRoomPassword" type="password" placeholder="Biarkan kosong jika tanpa password">
+            </div>
+            <div class="modal-buttons">
+                <button id="btnSubmitCreateRoom" class="btn-primary">Buat & Masuk</button>
+                <button id="btnCancelCreateRoom" class="btn-stop">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL MASUKKAN PASSWORD -->
+    <div id="passwordPromptModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>🔒 Room Dilindungi Password</h3>
+            <p id="passwordPromptRoomName"></p>
+            <div class="form-group">
+                <input id="joinRoomPassword" type="password" placeholder="Masukkan password room...">
+            </div>
+            <div class="modal-buttons">
+                <button id="btnSubmitJoinPassword" class="btn-primary">Join Room</button>
+                <button id="btnCancelJoinPassword" class="btn-stop">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RUANG TUNGGU ROOM (WAITING LOBBY) -->
+    <div id="roomWaitingArea" class="hidden">
+        <header class="room-header">
+            <div>
+                <h2 id="roomTitle">Nama Room</h2>
+                <p id="roomHostInfo">Host: -</p>
+            </div>
+            <div>
+                <button id="btnStartGame" class="btn-primary hidden">🎮 Start Game</button>
+                <button id="btnLeaveRoom" class="btn-stop">🚪 Keluar Room</button>
+            </div>
+        </header>
+
+        <div class="waiting-players-card">
+            <h3>Pemain di dalam Room (<span id="waitingPlayerCount">0</span>):</h3>
+            <div id="waitingPlayerList" class="player-chips"></div>
+        </div>
+    </div>
+
+    <!-- ARENA GAMEPLAY -->
+    <div id="game" class="hidden">
+        <header>
+            <div>
+                <h1 id="inGameRoomTitle">Card Game</h1>
+                <p id="turnInfo"></p>
+            </div>
+            <div>
+                <p id="drawPileInfo"></p>
+                <button id="stopButton" class="btn-stop">CALL STOP!</button>
+            </div>
+        </header>
+
+        <div id="drawnCardPanel" class="panel hidden">
+            <h3>Kartu yang Baru Diambil:</h3>
+            <div id="drawnCardContainer"></div>
+            <div class="panel-buttons">
+                <button id="btnDiscardDrawn" class="btn-primary">Pilihan A: Buang ke Discard Pile</button>
+                <p class="panel-hint">Atau klik salah satu kartu tangan Anda untuk <strong>Pilihan B (Tukar Kartu)</strong></p>
+            </div>
+        </div>
+
+        <div id="actionPromptPanel" class="panel hidden">
+            <h3 id="actionPromptText">Aksi Kartu Aktif</h3>
+            <p id="actionPromptSubtext"></p>
+        </div>
+
+        <div id="peekResultModal" class="modal hidden">
+            <div class="modal-content">
+                <h3>Hasil Intip (Peek)</h3>
+                <p id="peekResultText"></p>
+                <div id="peekResultCardContainer"></div>
+                <button id="closePeekBtn" class="btn-primary">Tutup</button>
+            </div>
+        </div>
+
+        <div id="winnerModal" class="modal hidden">
+            <div class="modal-content">
+                <h2>PERMAINAN SELESAI</h2>
+                <h3 id="winnerTitle"></h3>
+                <div id="leaderboard"></div>
+                <button id="restartBtn" class="btn-primary">Kembali ke Room</button>
+            </div>
+        </div>
+
+        <div id="playersArea"></div>
+
+        <div id="table">
+            <div id="drawPile" title="Klik untuk mengambil kartu">
+                <div class="card back">
+                    DRAW
+                </div>
+            </div>
+
+            <div id="discardPile">
+                <div class="card">
+                    -
+                </div>
+            </div>
+        </div>
+
+        <div id="myCards">
+            <h2>Kartu Saya</h2>
+            <div id="myCardGrid" class="card-grid"></div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
+</body>
+
+</html>
