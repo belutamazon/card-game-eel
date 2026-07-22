@@ -139,23 +139,6 @@
             </div>
         </header>
 
-        <!-- DRAWN CARD OPTION PANEL (CHOICE A VS CHOICE B) -->
-        <div id="drawnCardPanel" class="action-panel glass-card hidden">
-            <div class="panel-header">
-                <span class="badge-amber">DRAW SUCCESS</span>
-                <h3>Kartu yang Baru Diambil:</h3>
-            </div>
-            
-            <div id="drawnCardContainer" class="drawn-card-wrapper"></div>
-            
-            <div class="panel-buttons">
-                <button id="btnDiscardDrawn" class="btn-glow btn-emerald btn-lg">
-                    ✨ Pilihan A: Buang ke Discard Pile
-                </button>
-                <p class="panel-hint">Atau klik salah satu slot kartu Anda untuk <strong>Pilihan B (Tukar Kartu)</strong></p>
-            </div>
-        </div>
-
         <!-- ACTION SKILL PROMPT PANEL -->
         <div id="actionPromptPanel" class="action-panel glass-card hidden">
             <div class="panel-header">
@@ -193,7 +176,7 @@
         <!-- OPPONENTS PLAYER AREA -->
         <div id="playersArea" class="opponents-grid"></div>
 
-        <!-- CENTRAL GAME TABLE (DRAW PILE & DISCARD PILE) -->
+        <!-- CENTRAL GAME TABLE (DRAW PILE, DRAWN CARD SLOT, & DISCARD PILE) -->
         <div id="table" class="felt-table glass-card">
             <div class="pile-slot">
                 <span class="pile-label">DRAW PILE</span>
@@ -207,11 +190,17 @@
                 </div>
             </div>
 
+            <!-- SLOT KARTU YANG BARU DI-DRAW (SAMPING DRAW PILE) -->
+            <div id="drawnSlotContainer" class="pile-slot hidden">
+                <span class="pile-label badge-amber">KARTU DRAW</span>
+                <div id="drawnCardSlot" class="pile-deck"></div>
+            </div>
+
             <div class="table-divider"></div>
 
             <div class="pile-slot">
-                <span class="pile-label">DISCARD PILE</span>
-                <div id="discardPile" class="pile-deck">
+                <span id="discardPileLabel" class="pile-label">DISCARD PILE</span>
+                <div id="discardPile" class="pile-deck" title="Klik untuk membuang (Pilihan A)">
                     <div class="card 3d-card empty-slot">
                         -
                     </div>

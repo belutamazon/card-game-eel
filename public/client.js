@@ -358,20 +358,24 @@ drawPileElement.addEventListener("click", () => {
 
     const isMyTurn = currentGameState.players[currentGameState.currentPlayerIndex]?.id === myPlayerId;
     if (isMyTurn && currentGameState.turnPhase === "draw") {
-        const targetPanel = document.getElementById("drawnCardContainer") || document.getElementById("myCardGrid");
-        animateFlyingCard(drawPileElement, targetPanel, null, () => {
+        const drawnSlot = document.getElementById("drawnCardSlot") || drawPileElement;
+        animateFlyingCard(drawPileElement, drawnSlot, null, () => {
             socket.emit("draw_card");
         });
     }
 });
 
-btnDiscardDrawn.addEventListener("click", () => {
-    const drawnContainer = document.getElementById("drawnCardContainer");
-    const discardPile = document.getElementById("discardPile");
+const discardPileElement = document.getElementById("discardPile");
+discardPileElement.addEventListener("click", () => {
+    if (!currentGameState || currentGameState.status !== "playing") return;
 
-    animateFlyingCard(drawnContainer, discardPile, null, () => {
-        socket.emit("choose_discard_drawn");
-    });
+    const isMyTurn = currentGameState.players[currentGameState.currentPlayerIndex]?.id === myPlayerId;
+    if (isMyTurn && currentGameState.turnPhase === "turn_choice" && currentGameState.currentDrawnCard) {
+        const drawnSlot = document.getElementById("drawnCardSlot") || discardPileElement;
+        animateFlyingCard(drawnSlot, discardPileElement, null, () => {
+            socket.emit("choose_discard_drawn");
+        });
+    }
 });
 
 closePeekBtn.addEventListener("click", () => {
@@ -419,15 +423,24 @@ function renderGameInfo(gameState, isMyTurn) {
 }
 
 function renderDrawnCardPanel(gameState, isMyTurn) {
-    const panel = document.getElementById("drawnCardPanel");
-    const container = document.getElementById("drawnCardContainer");
+    const slotContainer = document.getElementById("drawnSlotContainer");
+    const slot = document.getElementById("drawnCardSlot");
+    const discardPile = document.getElementById("discardPile");
+    const discardLabel = document.getElementById("discardPileLabel");
 
     if (isMyTurn && gameState.turnPhase === "turn_choice" && gameState.currentDrawnCard) {
-        panel.classList.remove("hidden");
-        container.innerHTML = "";
-        container.appendChild(createCardElement({ card: gameState.currentDrawnCard }));
+        if (slotContainer) slotContainer.classList.remove("hidden");
+        if (slot) {
+            slot.innerHTML = "";
+            slot.appendChild(createCardElement({ card: gameState.currentDrawnCard }));
+        }
+        if (discardPile) discardPile.classList.add("can-discard");
+        if (discardLabel) discardLabel.textContent = "MEMBUANG (PILIHAN A)";
     } else {
-        panel.classList.add("hidden");
+        if (slotContainer) slotContainer.classList.add("hidden");
+        if (slot) slot.innerHTML = "";
+        if (discardPile) discardPile.classList.remove("can-discard");
+        if (discardLabel) discardLabel.textContent = "DISCARD PILE";
     }
 }
 
