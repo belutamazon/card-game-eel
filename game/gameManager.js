@@ -220,22 +220,10 @@ class GameManager {
             throw new Error("Posisi kartu tidak valid");
         }
 
-        const givenCard = { ...slotA.card, revealed: true };
-        const receivedCard = { ...slotB.card, revealed: true };
-
-        // Tukar kartu (tetap tertutup dan skill hilang jika ada)
-        const temp = { ...slotA.card, actionAvailable: false };
-        slotA.card = { ...slotB.card, actionAvailable: false };
+        // Tukar kartu secara buta / blind (kartu tetap tertutup dan skill hilang jika ada)
+        const temp = { ...slotA.card, actionAvailable: false, revealed: false };
+        slotA.card = { ...slotB.card, actionAvailable: false, revealed: false };
         slotB.card = temp;
-
-        this.state.swapResult = {
-            playerId,
-            myPosition: playerAPosition,
-            givenCard,
-            receivedCard,
-            targetPlayerName: playerB.name,
-            targetPosition: playerBPosition
-        };
 
         this.state.activeAction = null;
         this.finishTurn();
@@ -402,9 +390,6 @@ class GameManager {
             peekResult: (this.state.peekResult && this.state.peekResult.playerId === playerId) ? {
                 ...this.state.peekResult,
                 card: { ...this.state.peekResult.card, revealed: true }
-            } : null,
-            swapResult: (this.state.swapResult && this.state.swapResult.playerId === playerId) ? {
-                ...this.state.swapResult
             } : null,
             pairWindowOpen: this.state.pairWindow.isOpen && !this.state.pairWindow.completed,
             stoppedBy: this.state.stoppedBy,

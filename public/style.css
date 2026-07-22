@@ -706,33 +706,6 @@ body {
     color: #94a3b8;
 }
 
-.swap-cards-display {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 16px;
-    margin: 20px 0;
-}
-
-.swap-card-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-}
-
-.swap-label {
-    font-family: var(--font-code);
-    font-size: 0.8rem;
-    color: #94a3b8;
-}
-
-.swap-arrow {
-    font-size: 1.8rem;
-    color: var(--amber);
-    animation: pulse 1s infinite;
-}
-
 .form-group {
     margin: 18px 0;
     text-align: left;
