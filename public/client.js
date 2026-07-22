@@ -539,8 +539,9 @@ function createCardElement(item) {
     element.classList.add(isRed ? "red" : "black");
 
     element.innerHTML = `
-        <div>${card.rank}</div>
-        <div>${card.symbol}</div>
+        <div class="card-corner-top">${card.rank}</div>
+        <div class="card-center-symbol">${card.symbol}</div>
+        <div class="card-corner-bottom">${card.rank}</div>
     `;
 
     return element;
