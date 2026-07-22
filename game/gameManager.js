@@ -45,10 +45,10 @@ class GameManager {
         this.state.winnerInfo = null;
 
         this.state.players.forEach(player => {
-            const cardTL = { ...this.state.drawPile.pop(), revealed: false };
-            const cardTR = { ...this.state.drawPile.pop(), revealed: false };
-            const cardBL = { ...this.state.drawPile.pop(), revealed: true };
-            const cardBR = { ...this.state.drawPile.pop(), revealed: true };
+            const cardTL = { ...this.state.drawPile.pop(), revealed: false, actionAvailable: false };
+            const cardTR = { ...this.state.drawPile.pop(), revealed: false, actionAvailable: false };
+            const cardBL = { ...this.state.drawPile.pop(), revealed: true, actionAvailable: false };
+            const cardBR = { ...this.state.drawPile.pop(), revealed: true, actionAvailable: false };
 
             player.cards = [
                 { position: "top-left", card: cardTL },
@@ -77,7 +77,7 @@ class GameManager {
         }
 
         const card = this.state.drawPile.pop();
-        card.actionAvailable = true;
+        card.actionAvailable = true; // Skill HANYA aktif untuk kartu yang baru diambil dari draw pile
 
         // Tutup 2 kartu bawah pada saat melakukan draw
         player.cards.forEach(item => {
@@ -86,7 +86,7 @@ class GameManager {
 
         this.state.currentDrawnCard = card;
         this.state.turnPhase = "turn_choice";
-        this.state.peekResult = null; // Clear previous peek
+        this.state.peekResult = null;
 
         return card;
     }
@@ -108,8 +108,8 @@ class GameManager {
             pairPlayerId: null
         };
 
-        // Jika kartu aksi, aktifkan skillnya (7, 8, 9, 10, J, Q)
-        if (card.action) {
+        // Skill HANYA aktif jika dibuang langsung saat baru diambil dari draw pile (Pilihan A)
+        if (card.actionAvailable && card.action) {
             this.state.turnPhase = "action_pending";
             this.state.activeAction = {
                 type: card.action,
@@ -132,8 +132,10 @@ class GameManager {
             throw new Error("Posisi kartu tidak valid");
         }
 
-        const oldCard = { ...cardSlot.card, revealed: true };
-        const newCard = { ...this.state.currentDrawnCard, revealed: false };
+        // Kartu lama dari deck pemain yang dibuang (skillnya TIDAK aktif)
+        const oldCard = { ...cardSlot.card, revealed: true, actionAvailable: false };
+        // Kartu baru masuk ke deck pemain (skillnya HILANG karena sudah masuk deck)
+        const newCard = { ...this.state.currentDrawnCard, revealed: false, actionAvailable: false };
 
         cardSlot.card = newCard;
         this.state.currentDrawnCard = null;
@@ -217,9 +219,9 @@ class GameManager {
             throw new Error("Posisi kartu tidak valid");
         }
 
-        // Tukar kartu (tetap tertutup)
-        const temp = slotA.card;
-        slotA.card = slotB.card;
+        // Tukar kartu (tetap tertutup dan skill hilang jika ada)
+        const temp = { ...slotA.card, actionAvailable: false };
+        slotA.card = { ...slotB.card, actionAvailable: false };
         slotB.card = temp;
 
         this.state.activeAction = null;
@@ -247,7 +249,7 @@ class GameManager {
         this.state.pairWindow.completed = true;
         this.state.pairWindow.isOpen = false;
 
-        const pairedCard = { ...cardSlot.card, revealed: true };
+        const pairedCard = { ...cardSlot.card, revealed: true, actionAvailable: false };
         player.cards = player.cards.filter(item => item.position !== cardPosition);
         this.state.discardPile.push(pairedCard);
 
@@ -267,12 +269,12 @@ class GameManager {
             this.reloadDrawPile();
         }
 
-        // Kartu yang salah/terlambat melakukan pair dibuang ke discard pile (terbuka)
-        const discardedInvalidCard = { ...cardSlot.card, revealed: true };
+        // Kartu yang salah/terlambat melakukan pair dibuang ke discard pile (terbuka, skill tidak aktif)
+        const discardedInvalidCard = { ...cardSlot.card, revealed: true, actionAvailable: false };
         this.state.discardPile.push(discardedInvalidCard);
 
-        // Ambil kartu baru dari draw pile untuk menggantikan posisi kartu tersebut (tertutup)
-        const replacementCard = { ...this.state.drawPile.pop(), revealed: false };
+        // Ambil kartu baru dari draw pile untuk menggantikan posisi kartu tersebut (tertutup, skill tidak aktif)
+        const replacementCard = { ...this.state.drawPile.pop(), revealed: false, actionAvailable: false };
         cardSlot.card = replacementCard;
 
         return {
