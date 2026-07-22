@@ -78,7 +78,10 @@ io.on("connection", (socket) => {
             if (room.hostId !== socket.id) throw new Error("Hanya Host yang dapat memulai permainan");
 
             room.game.startGame();
-            broadcastRoomGameState(room);
+            room.players.forEach(player => {
+                const privateState = room.game.getPrivateState(player.id);
+                io.to(player.id).emit("game_started", privateState);
+            });
             io.emit("room_list_updated", roomManager.getPublicRoomList());
         } catch (error) {
             console.error("ERROR START GAME:", error.message);
@@ -217,7 +220,6 @@ function broadcastRoomGameState(room) {
     room.players.forEach(player => {
         const privateState = room.game.getPrivateState(player.id);
         io.to(player.id).emit("game_state_updated", privateState);
-        io.to(player.id).emit("game_started", privateState);
     });
 }
 
