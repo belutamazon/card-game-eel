@@ -378,6 +378,13 @@ discardPileElement.addEventListener("click", () => {
     }
 });
 
+const closeSwapBtn = document.getElementById("closeSwapBtn");
+if (closeSwapBtn) {
+    closeSwapBtn.addEventListener("click", () => {
+        document.getElementById("swapResultModal").classList.add("hidden");
+    });
+}
+
 closePeekBtn.addEventListener("click", () => {
     document.getElementById("peekResultModal").classList.add("hidden");
 });
@@ -395,6 +402,7 @@ function renderGame(gameState) {
     renderDrawnCardPanel(gameState, isMyTurn);
     renderActionPromptPanel(gameState, isMyTurn);
     renderPeekResult(gameState);
+    renderSwapResult(gameState);
     renderWinnerModal(gameState);
 
     renderMyCards(gameState, isMyTurn);
@@ -481,6 +489,30 @@ function renderPeekResult(gameState) {
 
         const peekedCard = { ...gameState.peekResult.card, revealed: true };
         container.appendChild(createCardElement({ card: peekedCard }));
+    }
+}
+
+function renderSwapResult(gameState) {
+    const modal = document.getElementById("swapResultModal");
+    const text = document.getElementById("swapResultText");
+    const givenContainer = document.getElementById("swapGivenCardContainer");
+    const receivedContainer = document.getElementById("swapReceivedCardContainer");
+
+    if (!modal || !givenContainer || !receivedContainer) return;
+
+    if (gameState.swapResult) {
+        modal.classList.remove("hidden");
+        if (text) {
+            text.textContent = `Pertukaran kartu dengan ${gameState.swapResult.targetPlayerName} (${gameState.swapResult.targetPosition}) berhasil!`;
+        }
+
+        givenContainer.innerHTML = "";
+        receivedContainer.innerHTML = "";
+
+        givenContainer.appendChild(createCardElement({ card: gameState.swapResult.givenCard }));
+        receivedContainer.appendChild(createCardElement({ card: gameState.swapResult.receivedCard }));
+    } else {
+        modal.classList.add("hidden");
     }
 }
 
