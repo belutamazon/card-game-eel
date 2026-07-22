@@ -4,7 +4,6 @@ let myPlayerId = null;
 let currentRoomId = null;
 let currentGameState = null;
 let targetRoomToJoin = null;
-
 let actionSelectionState = null;
 
 // DOM Elements
@@ -45,6 +44,98 @@ const closePeekBtn = document.getElementById("closePeekBtn");
 const restartBtn = document.getElementById("restartBtn");
 const drawPileElement = document.getElementById("drawPile");
 
+/* --------------------------------------------------------------------------
+   CUSTOM TOAST CARD NOTIFICATION SYSTEM (NO ALERT)
+   -------------------------------------------------------------------------- */
+function showToast(message, type = "error", title = null) {
+    const toastContainer = document.getElementById("toastContainer");
+    if (!toastContainer) return;
+
+    const toast = document.createElement("div");
+    toast.className = `toast-card ${type}`;
+
+    let icon = "⚠️";
+    let defaultTitle = "Pemberitahuan";
+
+    if (type === "error") {
+        icon = "🚫";
+        defaultTitle = "Perhatian / Error";
+    } else if (type === "success") {
+        icon = "✨";
+        defaultTitle = "Berhasil";
+    } else if (type === "info") {
+        icon = "ℹ️";
+        defaultTitle = "Informasi Game";
+    }
+
+    toast.innerHTML = `
+        <div class="toast-icon">${icon}</div>
+        <div class="toast-body">
+            <div class="toast-title">${title || defaultTitle}</div>
+            <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close">✕</button>
+    `;
+
+    const closeBtn = toast.querySelector(".toast-close");
+    closeBtn.addEventListener("click", () => {
+        toast.classList.add("fade-out");
+        setTimeout(() => toast.remove(), 300);
+    });
+
+    toastContainer.appendChild(toast);
+
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.classList.add("fade-out");
+            setTimeout(() => toast.remove(), 300);
+        }
+    }, 4000);
+}
+
+/* --------------------------------------------------------------------------
+   SATISFYING FLYING CARD ANIMATION SYSTEM
+   -------------------------------------------------------------------------- */
+function animateFlyingCard(fromElem, toElem, innerHTML, callback) {
+    if (!fromElem || !toElem) {
+        if (callback) callback();
+        return;
+    }
+
+    const fromRect = fromElem.getBoundingClientRect();
+    const toRect = toElem.getBoundingClientRect();
+
+    const clone = document.createElement("div");
+    clone.className = "card flying-card back";
+    clone.innerHTML = innerHTML || `
+        <div class="card-inner-back">
+            <span class="back-logo">🂠</span>
+            <span class="back-text">CABO</span>
+        </div>
+    `;
+
+    clone.style.left = `${fromRect.left}px`;
+    clone.style.top = `${fromRect.top}px`;
+    clone.style.width = `${fromRect.width || 90}px`;
+    clone.style.height = `${fromRect.height || 130}px`;
+
+    document.body.appendChild(clone);
+
+    // Force DOM repaint
+    void clone.offsetWidth;
+
+    clone.style.left = `${toRect.left}px`;
+    clone.style.top = `${toRect.top}px`;
+    clone.style.width = `${toRect.width || 90}px`;
+    clone.style.height = `${toRect.height || 130}px`;
+    clone.style.transform = `rotate(360deg) scale(1.08)`;
+
+    setTimeout(() => {
+        clone.remove();
+        if (callback) callback();
+    }, 450);
+}
+
 socket.on("connect", () => {
     myPlayerId = socket.id;
     console.log("Connected with ID:", myPlayerId);
@@ -54,7 +145,7 @@ socket.on("connect", () => {
 btnOpenCreateRoom.addEventListener("click", () => {
     const playerName = playerNameInput.value.trim();
     if (!playerName) {
-        alert("Silakan masukkan nama player Anda terlebih dahulu!");
+        showToast("Silakan masukkan nama player Anda terlebih dahulu!", "error");
         playerNameInput.focus();
         return;
     }
@@ -71,7 +162,7 @@ btnSubmitCreateRoom.addEventListener("click", () => {
     const password = createRoomPasswordInput.value;
 
     if (!roomName) {
-        alert("Nama room wajib diisi!");
+        showToast("Nama room wajib diisi!", "error");
         return;
     }
 
@@ -80,6 +171,7 @@ btnSubmitCreateRoom.addEventListener("click", () => {
 
 btnRefreshRooms.addEventListener("click", () => {
     socket.emit("get_rooms");
+    showToast("Daftar room diperbarui", "info");
 });
 
 btnCancelJoinPassword.addEventListener("click", () => {
@@ -129,6 +221,7 @@ socket.on("room_joined", ({ roomId, roomName, isHost, players, gameState }) => {
         roomWaitingArea.classList.remove("hidden");
         updateRoomWaitingArea(roomName, players, isHost);
     }
+    showToast(`Berhasil bergabung ke Room ${roomName}`, "success");
 });
 
 socket.on("room_updated", ({ roomId, roomName, hostId, players }) => {
@@ -143,6 +236,7 @@ socket.on("room_left", () => {
     gameElement.classList.add("hidden");
     document.getElementById("lobby").classList.remove("hidden");
     socket.emit("get_rooms");
+    showToast("Anda telah keluar dari room", "info");
 });
 
 socket.on("game_started", (gameState) => {
@@ -150,6 +244,7 @@ socket.on("game_started", (gameState) => {
     roomWaitingArea.classList.add("hidden");
     gameElement.classList.remove("hidden");
     renderGame(gameState);
+    showToast("Permainan Dimulai! 2 kartu bawah Anda dibuka selama awal permainan.", "info");
 });
 
 socket.on("game_state_updated", (gameState) => {
@@ -158,7 +253,7 @@ socket.on("game_state_updated", (gameState) => {
 });
 
 socket.on("error_message", (message) => {
-    alert(message);
+    showToast(message, "error");
 });
 
 function renderRoomList(roomList) {
@@ -184,13 +279,13 @@ function renderRoomList(roomList) {
         card.innerHTML = `
             <div class="room-card-header">
                 <span class="room-card-title">${room.name} ${lockIcon}</span>
-                <span class="room-card-badge">${statusText}</span>
+                <span class="status-badge">${statusText}</span>
             </div>
             <div class="room-card-info">
                 Host: <strong>${room.hostName}</strong><br>
-                Pemain: <strong>${room.playerCount} orang</strong>
+                Pemain: <strong>${room.playerCount}/4 orang</strong>
             </div>
-            <button class="btn-primary btn-join-room" ${room.status === "playing" ? "disabled" : ""}>Join Room</button>
+            <button class="btn-glow btn-azure btn-join-room" ${room.status === "playing" ? "disabled" : ""}>Join Room</button>
         `;
 
         const joinBtn = card.querySelector(".btn-join-room");
@@ -205,7 +300,7 @@ function renderRoomList(roomList) {
 function handleJoinRoomClick(room) {
     const playerName = playerNameInput.value.trim();
     if (!playerName) {
-        alert("Silakan masukkan nama player Anda terlebih dahulu!");
+        showToast("Silakan masukkan nama player Anda terlebih dahulu!", "error");
         playerNameInput.focus();
         return;
     }
@@ -252,11 +347,10 @@ function updateRoomWaitingArea(roomName, players, isHost) {
     }
 }
 
-// GAMEPLAY ACTIONS
+// GAMEPLAY ACTIONS WITH ANIMATIONS
 stopButton.addEventListener("click", () => {
-    if (confirm("Apakah Anda yakin ingin memanggil STOP dan mengakhiri permainan?")) {
-        socket.emit("call_stop");
-    }
+    socket.emit("call_stop");
+    showToast("Anda memanggil CALL STOP!", "info");
 });
 
 drawPileElement.addEventListener("click", () => {
@@ -264,12 +358,20 @@ drawPileElement.addEventListener("click", () => {
 
     const isMyTurn = currentGameState.players[currentGameState.currentPlayerIndex]?.id === myPlayerId;
     if (isMyTurn && currentGameState.turnPhase === "draw") {
-        socket.emit("draw_card");
+        const targetPanel = document.getElementById("drawnCardContainer") || document.getElementById("myCardGrid");
+        animateFlyingCard(drawPileElement, targetPanel, null, () => {
+            socket.emit("draw_card");
+        });
     }
 });
 
 btnDiscardDrawn.addEventListener("click", () => {
-    socket.emit("choose_discard_drawn");
+    const drawnContainer = document.getElementById("drawnCardContainer");
+    const discardPile = document.getElementById("discardPile");
+
+    animateFlyingCard(drawnContainer, discardPile, null, () => {
+        socket.emit("choose_discard_drawn");
+    });
 });
 
 closePeekBtn.addEventListener("click", () => {
@@ -339,18 +441,14 @@ function renderActionPromptPanel(gameState, isMyTurn) {
         const actionType = gameState.activeAction.type;
 
         if (actionType === "peek_self") {
-            title.textContent = "Aksi Kartu 7 / 8: Peek Diri Sendiri";
-            subtext.textContent = "Klik salah satu kartu Anda di bawah untuk mengintip isinya.";
+            title.textContent = "🔍 SKILL KARTU 7/8: Intip Kartu Sendiri";
+            subtext.textContent = "Klik salah satu kartu di tangan Anda untuk melihat nilainya.";
         } else if (actionType === "peek_other") {
-            title.textContent = "Aksi Kartu 9 / 10: Peek Kartu Lawan";
-            subtext.textContent = "Klik salah satu kartu milik pemain lain di atas untuk mengintip.";
+            title.textContent = "👁️ SKILL KARTU 9/10: Intip Kartu Lawan";
+            subtext.textContent = "Klik salah satu kartu milik lawan Anda untuk melihat nilainya.";
         } else if (actionType === "swap") {
-            title.textContent = "Aksi Kartu J / Q: Tukar Kartu Tanpa Melihat";
-            if (!actionSelectionState) {
-                subtext.textContent = "Langkah 1: Klik salah satu kartu Anda yang ingin ditukar.";
-            } else {
-                subtext.textContent = "Langkah 2: Klik salah satu kartu lawan untuk menyelesaikan pertukaran.";
-            }
+            title.textContent = "🔄 SKILL KARTU J/Q: Tukar Kartu";
+            subtext.textContent = "Klik 1 kartu Anda, lalu klik 1 kartu lawan untuk ditukarkan.";
         }
     } else {
         panel.classList.add("hidden");
@@ -365,8 +463,9 @@ function renderPeekResult(gameState) {
 
     if (gameState.peekResult) {
         modal.classList.remove("hidden");
-        text.textContent = `Kartu pada posisi [${gameState.peekResult.targetPosition}] milik ${gameState.peekResult.targetPlayerName}:`;
+        text.textContent = `Kartu target (${gameState.peekResult.targetPlayerName} - ${gameState.peekResult.targetPosition}):`;
         container.innerHTML = "";
+
         const peekedCard = { ...gameState.peekResult.card, revealed: true };
         container.appendChild(createCardElement({ card: peekedCard }));
     }
@@ -408,22 +507,25 @@ function renderMyCards(gameState, isMyTurn) {
         const wrapper = document.createElement("div");
         wrapper.className = "card-container";
 
-        const cardElement = createCardElement(item);
+        const cardElem = createCardElement(item);
+        cardElem.dataset.position = item.position;
 
-        cardElement.addEventListener("click", () => {
-            handleMyCardClick(item, gameState, isMyTurn);
+        cardElem.addEventListener("click", (e) => {
+            handleCardClick(item.position, gameState, isMyTurn, cardElem);
         });
 
-        wrapper.appendChild(cardElement);
+        wrapper.appendChild(cardElem);
 
         if (gameState.pairWindowOpen) {
             const pairBtn = document.createElement("button");
             pairBtn.className = "card-btn-pair";
-            pairBtn.textContent = "PAIR!";
+            pairBtn.textContent = "⚡ PAIR!";
+
             pairBtn.addEventListener("click", (e) => {
                 e.stopPropagation();
                 socket.emit("attempt_pair", { cardPosition: item.position });
             });
+
             wrapper.appendChild(pairBtn);
         }
 
@@ -431,11 +533,67 @@ function renderMyCards(gameState, isMyTurn) {
     });
 }
 
-function handleMyCardClick(item, gameState, isMyTurn) {
+function renderPlayers(gameState, isMyTurn) {
+    const playersArea = document.getElementById("playersArea");
+    playersArea.innerHTML = "";
+
+    gameState.players.forEach((player, index) => {
+        if (player.id === myPlayerId) return;
+
+        const isCurrent = gameState.currentPlayerIndex === index;
+        const playerArea = document.createElement("div");
+        playerArea.className = `player-area ${isCurrent ? 'current-player' : ''}`;
+
+        playerArea.innerHTML = `
+            <div class="player-name">👤 ${player.name}</div>
+            <div class="card-grid"></div>
+        `;
+
+        const grid = playerArea.querySelector(".card-grid");
+
+        player.cards.forEach(item => {
+            const wrapper = document.createElement("div");
+            wrapper.className = "card-container";
+
+            const cardElem = createCardElement(item);
+            cardElem.dataset.position = item.position;
+            cardElem.dataset.playerId = player.id;
+
+            cardElem.addEventListener("click", () => {
+                handleOpponentCardClick(player.id, item.position, gameState, isMyTurn);
+            });
+
+            wrapper.appendChild(cardElem);
+
+            if (gameState.pairWindowOpen) {
+                const pairBtn = document.createElement("button");
+                pairBtn.className = "card-btn-pair";
+                pairBtn.textContent = "⚡ PAIR!";
+
+                pairBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    showToast("Pair hanya boleh mengklaim kartu milik Anda sendiri!", "error");
+                });
+
+                wrapper.appendChild(pairBtn);
+            }
+
+            grid.appendChild(wrapper);
+        });
+
+        playersArea.appendChild(playerArea);
+    });
+}
+
+function handleCardClick(position, gameState, isMyTurn, cardElem) {
     if (!isMyTurn) return;
 
-    if (gameState.turnPhase === "turn_choice") {
-        socket.emit("choose_swap_drawn", { targetPosition: item.position });
+    const discardPile = document.getElementById("discardPile");
+
+    if (gameState.turnPhase === "turn_choice" && gameState.currentDrawnCard) {
+        animateFlyingCard(cardElem, discardPile, null, () => {
+            socket.emit("choose_swap_drawn", { targetPosition: position });
+        });
         return;
     }
 
@@ -443,73 +601,34 @@ function handleMyCardClick(item, gameState, isMyTurn) {
         const actionType = gameState.activeAction.type;
 
         if (actionType === "peek_self") {
-            socket.emit("execute_peek_self", { targetPosition: item.position });
+            socket.emit("execute_peek_self", { targetPosition: position });
         } else if (actionType === "swap") {
             if (!actionSelectionState) {
-                actionSelectionState = { step: 1, playerAPosition: item.position };
-                alert("Kartu Anda dipilih. Sekarang klik kartu lawan yang ingin ditukar.");
-                renderGame(gameState);
+                actionSelectionState = { playerAPosition: position };
+                showToast(`Kartu Anda (${position}) dipilih. Sekarang klik 1 kartu lawan untuk ditukarkan!`, "info");
             }
         }
     }
 }
 
-function renderPlayers(gameState, isMyTurn) {
-    const playersArea = document.getElementById("playersArea");
-    playersArea.innerHTML = "";
-
-    gameState.players.forEach(player => {
-        if (player.id === myPlayerId) return;
-
-        const playerElement = document.createElement("div");
-        playerElement.classList.add("player-area");
-
-        if (gameState.currentPlayerIndex === gameState.players.indexOf(player)) {
-            playerElement.classList.add("current-player");
-        }
-
-        playerElement.innerHTML = `
-            <h3 class="player-name">${player.name} (${player.cards.length} kartu)</h3>
-            <div class="card-grid"></div>
-        `;
-
-        const cardGrid = playerElement.querySelector(".card-grid");
-
-        player.cards.forEach(item => {
-            const card = createCardElement(item);
-
-            card.addEventListener("click", () => {
-                handleOtherCardClick(player.id, item, gameState, isMyTurn);
-            });
-
-            cardGrid.appendChild(card);
-        });
-
-        playersArea.appendChild(playerElement);
-    });
-}
-
-function handleOtherCardClick(targetPlayerId, item, gameState, isMyTurn) {
+function handleOpponentCardClick(targetPlayerId, position, gameState, isMyTurn) {
     if (!isMyTurn) return;
 
     if (gameState.turnPhase === "action_pending" && gameState.activeAction) {
         const actionType = gameState.activeAction.type;
 
         if (actionType === "peek_other") {
-            socket.emit("execute_peek_other", {
-                targetPlayerId,
-                targetPosition: item.position
-            });
+            socket.emit("execute_peek_other", { targetPlayerId, targetPosition: position });
         } else if (actionType === "swap") {
-            if (actionSelectionState && actionSelectionState.step === 1) {
+            if (actionSelectionState && actionSelectionState.playerAPosition) {
                 socket.emit("execute_swap", {
                     playerAPosition: actionSelectionState.playerAPosition,
                     playerBId: targetPlayerId,
-                    playerBPosition: item.position
+                    playerBPosition: position
                 });
                 actionSelectionState = null;
             } else {
-                alert("Pilih kartu Anda terlebih dahulu untuk dipasangkan.");
+                showToast("Pilih 1 kartu Anda terlebih dahulu sebelum memilih kartu lawan!", "error");
             }
         }
     }
@@ -521,7 +640,7 @@ function renderDiscardPile(gameState) {
 
     const discardPile = gameState.discardPile;
     if (!discardPile || discardPile.length === 0) {
-        discardElement.innerHTML = `<div class="card">-</div>`;
+        discardElement.innerHTML = `<div class="card 3d-card empty-slot">-</div>`;
         return;
     }
 
