@@ -164,6 +164,11 @@ socket.on("error_message", (message) => {
 function renderRoomList(roomList) {
     roomListContainer.innerHTML = "";
 
+    const roomCountBadge = document.getElementById("roomCountBadge");
+    if (roomCountBadge) {
+        roomCountBadge.textContent = `${roomList ? roomList.length : 0} Room`;
+    }
+
     if (!roomList || roomList.length === 0) {
         roomListContainer.innerHTML = `<div class="no-rooms">Belum ada room aktif. Buat room baru untuk memulai!</div>`;
         return;
@@ -531,7 +536,12 @@ function createCardElement(item) {
 
     if (!card || card.revealed === false) {
         element.classList.add("back");
-        element.textContent = "?";
+        element.innerHTML = `
+            <div class="card-inner-back">
+                <span class="back-logo">🂠</span>
+                <span class="back-text">CABO</span>
+            </div>
+        `;
         return element;
     }
 

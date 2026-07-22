@@ -3,159 +3,232 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Card Game Multiplayer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cabo Royale • Multiplayer Card Game</title>
+    
+    <!-- Modern Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/style.css?v=9999">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/style.css?v=10000">
 </head>
 
 <body>
+    <!-- Ambient Background Table Lighting -->
+    <div class="ambient-light"></div>
+    <div class="table-vignette"></div>
 
-    <!-- LOBBY UTAMA (ROOM BROWSER & CREATION) -->
-    <div id="lobby">
-        <h1>🂠 Card Game Multiplayer</h1>
+    <!-- MAIN LOBBY SECTION -->
+    <div id="lobby" class="glass-card">
+        <div class="brand-badge">
+            <span class="pulse-dot"></span> REALTIME MULTIPLAYER
+        </div>
+        
+        <h1 class="brand-title">CABO ROYALE</h1>
+        <p class="brand-subtitle">Uji ingatan, strategi risiko, dan refleks tanganmu secara online</p>
 
-        <div class="user-profile-bar">
-            <label for="playerName">Nama Player:</label>
-            <input id="playerName" placeholder="Masukkan nama Anda..." required>
+        <div class="user-profile-section">
+            <label for="playerName" class="input-label">Nama Player</label>
+            <div class="input-with-icon">
+                <span class="icon">👤</span>
+                <input id="playerName" placeholder="Masukkan nick Anda..." autocomplete="off" required>
+            </div>
         </div>
 
         <div class="lobby-actions">
-            <button id="btnOpenCreateRoom" class="btn-primary">➕ Buat Room Baru</button>
-            <button id="btnRefreshRooms" class="btn-action">🔄 Refresh Room</button>
+            <button id="btnOpenCreateRoom" class="btn-glow btn-emerald">
+                <span class="btn-icon">➕</span> Buat Room Baru
+            </button>
+            <button id="btnRefreshRooms" class="btn-glow btn-azure">
+                <span class="btn-icon">🔄</span> Refresh Room
+            </button>
         </div>
 
-        <!-- DAFTAR ROOM -->
+        <!-- ACTIVE ROOM BROWSER -->
         <div class="room-list-container">
-            <h2>Daftar Room Aktif</h2>
+            <div class="section-header">
+                <h2>Daftar Room Aktif</h2>
+                <span id="roomCountBadge" class="status-badge">0 Room</span>
+            </div>
             <div id="roomList" class="room-grid"></div>
         </div>
     </div>
 
-    <!-- MODAL BUAT ROOM -->
-    <div id="createRoomModal" class="modal hidden">
-        <div class="modal-content">
-            <h3>Buat Room Baru</h3>
-            <div class="form-group">
-                <label>Nama Room:</label>
-                <input id="createRoomName" placeholder="Contoh: Room Santai">
+    <!-- CREATE ROOM MODAL -->
+    <div id="createRoomModal" class="modal-backdrop hidden">
+        <div class="modal-card glass-card">
+            <div class="modal-header">
+                <h3>🏠 Buat Room Baru</h3>
+                <p>Atur nama arena dan sandi rahasia room Anda</p>
             </div>
             <div class="form-group">
-                <label>Password Room (Opsional):</label>
-                <input id="createRoomPassword" type="password" placeholder="Biarkan kosong jika tanpa password">
+                <label for="createRoomName">Nama Room</label>
+                <input id="createRoomName" placeholder="Contoh: Arena Para Champion" autocomplete="off">
             </div>
-            <div class="modal-buttons">
-                <button id="btnSubmitCreateRoom" class="btn-primary">Buat & Masuk</button>
-                <button id="btnCancelCreateRoom" class="btn-stop">Batal</button>
+            <div class="form-group">
+                <label for="createRoomPassword">Password Room (Opsional)</label>
+                <input id="createRoomPassword" type="password" placeholder="Biarkan kosong jika publik">
+            </div>
+            <div class="modal-footer">
+                <button id="btnSubmitCreateRoom" class="btn-glow btn-emerald">Buat & Masuk</button>
+                <button id="btnCancelCreateRoom" class="btn-glow btn-rose">Batal</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL MASUKKAN PASSWORD -->
-    <div id="passwordPromptModal" class="modal hidden">
-        <div class="modal-content">
-            <h3>🔒 Room Dilindungi Password</h3>
-            <p id="passwordPromptRoomName"></p>
+    <!-- JOIN PASSWORD MODAL -->
+    <div id="passwordPromptModal" class="modal-backdrop hidden">
+        <div class="modal-card glass-card">
+            <div class="modal-header">
+                <h3>🔒 Room Dilindungi Password</h3>
+                <p id="passwordPromptRoomName" class="highlight-text"></p>
+            </div>
             <div class="form-group">
+                <label for="joinRoomPassword">Password Room</label>
                 <input id="joinRoomPassword" type="password" placeholder="Masukkan password room...">
             </div>
-            <div class="modal-buttons">
-                <button id="btnSubmitJoinPassword" class="btn-primary">Join Room</button>
-                <button id="btnCancelJoinPassword" class="btn-stop">Batal</button>
+            <div class="modal-footer">
+                <button id="btnSubmitJoinPassword" class="btn-glow btn-emerald">Join Room</button>
+                <button id="btnCancelJoinPassword" class="btn-glow btn-rose">Batal</button>
             </div>
         </div>
     </div>
 
-    <!-- RUANG TUNGGU ROOM (WAITING LOBBY) -->
-    <div id="roomWaitingArea" class="hidden">
-        <header class="room-header">
-            <div>
+    <!-- WAITING ROOM LOBBY -->
+    <div id="roomWaitingArea" class="glass-card hidden">
+        <header class="room-waiting-header">
+            <div class="room-meta">
+                <span id="roomStatusPill" class="pill-badge">MENUNGGU PEMAIN</span>
                 <h2 id="roomTitle">Nama Room</h2>
                 <p id="roomHostInfo">Host: -</p>
             </div>
-            <div>
-                <button id="btnStartGame" class="btn-primary hidden">🎮 Start Game</button>
-                <button id="btnLeaveRoom" class="btn-stop">🚪 Keluar Room</button>
+            <div class="room-header-controls">
+                <button id="btnStartGame" class="btn-glow btn-amber hidden">🎮 Start Game</button>
+                <button id="btnLeaveRoom" class="btn-glow btn-rose">🚪 Keluar Room</button>
             </div>
         </header>
 
         <div class="waiting-players-card">
-            <h3>Pemain di dalam Room (<span id="waitingPlayerCount">0</span>):</h3>
+            <h3>Pemain Terhubung (<span id="waitingPlayerCount">0</span>/4)</h3>
             <div id="waitingPlayerList" class="player-chips"></div>
         </div>
     </div>
 
-    <!-- ARENA GAMEPLAY -->
+    <!-- MAIN GAMEPLAY ARENA -->
     <div id="game" class="hidden">
-        <header>
-            <div>
-                <h1 id="inGameRoomTitle">Card Game</h1>
-                <p id="turnInfo"></p>
+        <!-- TOP GAME BAR -->
+        <header class="game-top-bar glass-card">
+            <div class="brand-mini">
+                <h2 id="inGameRoomTitle">Arena Game</h2>
+                <div id="turnPill" class="turn-pill">
+                    <span class="turn-dot"></span>
+                    <span id="turnInfo">Menunggu Giliran...</span>
+                </div>
             </div>
-            <div>
-                <p id="drawPileInfo"></p>
-                <button id="stopButton" class="btn-stop">CALL STOP!</button>
+            
+            <div class="game-top-actions">
+                <div class="pile-count-chip">
+                    <span class="icon">🂠</span>
+                    <span id="drawPileInfo">Sisa: -</span>
+                </div>
+                <button id="stopButton" class="btn-glow btn-rose btn-stop-pulse">CALL STOP!</button>
             </div>
         </header>
 
-        <div id="drawnCardPanel" class="panel hidden">
-            <h3>Kartu yang Baru Diambil:</h3>
-            <div id="drawnCardContainer"></div>
+        <!-- DRAWN CARD OPTION PANEL (CHOICE A VS CHOICE B) -->
+        <div id="drawnCardPanel" class="action-panel glass-card hidden">
+            <div class="panel-header">
+                <span class="badge-amber">DRAW SUCCESS</span>
+                <h3>Kartu yang Baru Diambil:</h3>
+            </div>
+            
+            <div id="drawnCardContainer" class="drawn-card-wrapper"></div>
+            
             <div class="panel-buttons">
-                <button id="btnDiscardDrawn" class="btn-primary">Pilihan A: Buang ke Discard Pile</button>
-                <p class="panel-hint">Atau klik salah satu kartu tangan Anda untuk <strong>Pilihan B (Tukar Kartu)</strong></p>
+                <button id="btnDiscardDrawn" class="btn-glow btn-emerald btn-lg">
+                    ✨ Pilihan A: Buang ke Discard Pile
+                </button>
+                <p class="panel-hint">Atau klik salah satu slot kartu Anda untuk <strong>Pilihan B (Tukar Kartu)</strong></p>
             </div>
         </div>
 
-        <div id="actionPromptPanel" class="panel hidden">
-            <h3 id="actionPromptText">Aksi Kartu Aktif</h3>
-            <p id="actionPromptSubtext"></p>
+        <!-- ACTION SKILL PROMPT PANEL -->
+        <div id="actionPromptPanel" class="action-panel glass-card hidden">
+            <div class="panel-header">
+                <span class="badge-cyan">SKILL ACTIVE</span>
+                <h3 id="actionPromptText">Aksi Kartu Aktif</h3>
+            </div>
+            <p id="actionPromptSubtext" class="action-subtext"></p>
         </div>
 
-        <div id="peekResultModal" class="modal hidden">
-            <div class="modal-content">
-                <h3>Hasil Intip (Peek)</h3>
-                <p id="peekResultText"></p>
-                <div id="peekResultCardContainer"></div>
-                <button id="closePeekBtn" class="btn-primary">Tutup</button>
+        <!-- PEEK RESULT MODAL -->
+        <div id="peekResultModal" class="modal-backdrop hidden">
+            <div class="modal-card glass-card">
+                <div class="modal-header">
+                    <h3>👁️ Hasil Intip Kartu (Peek)</h3>
+                    <p id="peekResultText"></p>
+                </div>
+                <div id="peekResultCardContainer" class="peek-card-display"></div>
+                <button id="closePeekBtn" class="btn-glow btn-emerald mt-4">Tutup & Lanjutkan</button>
             </div>
         </div>
 
-        <div id="winnerModal" class="modal hidden">
-            <div class="modal-content">
+        <!-- WINNER GAME OVER MODAL -->
+        <div id="winnerModal" class="modal-backdrop hidden">
+            <div class="modal-card glass-card winner-card">
+                <div class="winner-trophy">🏆</div>
                 <h2>PERMAINAN SELESAI</h2>
-                <h3 id="winnerTitle"></h3>
-                <div id="leaderboard"></div>
-                <button id="restartBtn" class="btn-primary">Kembali ke Room</button>
+                <h3 id="winnerTitle" class="winner-name-highlight"></h3>
+                
+                <div id="leaderboard" class="leaderboard-list"></div>
+                
+                <button id="restartBtn" class="btn-glow btn-emerald btn-lg mt-4">Kembali ke Room</button>
             </div>
         </div>
 
-        <div id="playersArea"></div>
+        <!-- OPPONENTS PLAYER AREA -->
+        <div id="playersArea" class="opponents-grid"></div>
 
-        <div id="table">
-            <div id="drawPile" title="Klik untuk mengambil kartu">
-                <div class="card back">
-                    DRAW
+        <!-- CENTRAL GAME TABLE (DRAW PILE & DISCARD PILE) -->
+        <div id="table" class="felt-table glass-card">
+            <div class="pile-slot">
+                <span class="pile-label">DRAW PILE</span>
+                <div id="drawPile" class="pile-deck" title="Klik untuk mengambil kartu">
+                    <div class="card back 3d-card">
+                        <div class="card-inner-back">
+                            <span class="back-logo">🂠</span>
+                            <span class="back-text">DRAW</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div id="discardPile">
-                <div class="card">
-                    -
+            <div class="table-divider"></div>
+
+            <div class="pile-slot">
+                <span class="pile-label">DISCARD PILE</span>
+                <div id="discardPile" class="pile-deck">
+                    <div class="card 3d-card empty-slot">
+                        -
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div id="myCards">
-            <h2>Kartu Saya</h2>
+        <!-- PLAYER MY CARDS HAND AREA -->
+        <div id="myCards" class="my-hand-panel glass-card">
+            <div class="hand-header">
+                <h2>Kartu Saya</h2>
+                <span class="hand-subtitle">Susunan Formasi Grid 2x2</span>
+            </div>
             <div id="myCardGrid" class="card-grid"></div>
         </div>
     </div>
 
+    <!-- SOCKET.IO & CLIENT LOGIC -->
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/client.js?v=9999"></script>
+    <script src="/client.js?v=10000"></script>
 </body>
 
 </html>
